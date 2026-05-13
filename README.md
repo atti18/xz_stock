@@ -29,6 +29,10 @@ pip install -r tools/requirements.txt
 python tools/build_data.py            # 전 종목, 약 1년치 일봉. 네트워크 상태에 따라 수 분 소요
 git add docs/data && git commit -m "data 2026-05-12" && git push
 ```
+또는 위 세 줄을 한 번에 하는 스크립트:
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\refresh.ps1
+```
 빠른 확인용(일부 종목만):
 ```bash
 python tools/build_data.py --limit 40 --days 150
