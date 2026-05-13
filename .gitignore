@@ -12,3 +12,6 @@ Thumbs.db
 # 에디터
 .vscode/
 .idea/
+
+# refresh.ps1 실행 로그
+last_refresh.log
