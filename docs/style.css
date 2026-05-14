@@ -113,6 +113,10 @@ output { color: var(--text); font-variant-numeric: tabular-nums; }
 .srow .score { font-weight: 800; font-size: 1.2rem; font-variant-numeric: tabular-nums; line-height: 1; }
 .srow .scorelbl { font-size: .62rem; color: var(--muted); letter-spacing: .03em; }
 .srow .price { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: .2rem; }
+.srow .longscore { font-size: .74rem; color: var(--good); font-variant-numeric: tabular-nums; margin-top: .15rem;
+  background: rgba(56,193,114,.1); border: 1px solid rgba(56,193,114,.28); border-radius: 999px; padding: .02rem .4rem; display: inline-block; }
+.srow .longscore b { font-size: .9rem; font-weight: 700; }
+.srow .longscore.na { color: var(--muted); background: var(--panel2); border-color: var(--line); }
 .up { color: var(--up); } .down { color: var(--down); } .flat { color: var(--muted); }
 .illiq-tag { font-size: .62rem; color: var(--warn); }
 

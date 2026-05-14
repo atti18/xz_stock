@@ -4,6 +4,8 @@
 const LIST_LIMIT = 120;
 const SUB_KEYS = ['obv', 'chaikin', 'volsurge', 'stoch', 'smallcap'];
 const SUB_LABELS = { obv: 'OBV 추세', chaikin: '차이킨 오실레이터', volsurge: '거래량 급증·주가 횡보', stoch: '스토캐스틱 슬로우', smallcap: '소형주 가중' };
+const LONG_SUB_KEYS = ['chaikin_long', 'obv_long'];
+const LONG_SUB_LABELS = { chaikin_long: '장기 차이킨 (3, 220)', obv_long: '장기 OBV 기울기 (220일)' };
 const MARKET_LABEL = { KOSPI: '코스피', KOSDAQ: '코스닥' };
 
 const state = {
@@ -98,6 +100,7 @@ function wireControls() {
   $('#fMarket').addEventListener('change', renderList);
   $('#fHideIlliq').addEventListener('change', renderList);
   $('#fSearch').addEventListener('input', renderList);
+  if ($('#fBothStrong')) $('#fBothStrong').addEventListener('change', renderList);
   const ms = $('#fMinScore');
   ms.addEventListener('input', () => { $('#fMinScoreOut').textContent = ms.value; renderList(); });
   $('#weightReset').addEventListener('click', () => {
@@ -115,14 +118,19 @@ function renderList() {
   const market = $('#fMarket').value;
   const minScore = Number($('#fMinScore').value);
   const hideIlliq = $('#fHideIlliq').checked;
+  const bothStrong = $('#fBothStrong') && $('#fBothStrong').checked;
   const q = $('#fSearch').value.trim().toLowerCase();
 
   let list = state.rows.map(r => Object.assign({}, r, { _score: scoreFor(r, state.weights) }));
   if (market) list = list.filter(r => r.market === market);
   if (hideIlliq) list = list.filter(r => !r.illiquid);
   if (minScore > 0) list = list.filter(r => r._score >= minScore);
+  if (bothStrong) list = list.filter(r => r.longAvail && (r.longScore || 0) >= Math.max(minScore, 60));
   if (q) list = list.filter(r => r.name.toLowerCase().includes(q) || r.code.includes(q));
-  list.sort((a, b) => b._score - a._score || (b.surgeRatio || 0) - (a.surgeRatio || 0));
+  const sortKey = bothStrong
+    ? (r => (r._score + (r.longScore || 0)))
+    : (r => r._score);
+  list.sort((a, b) => sortKey(b) - sortKey(a) || (b.surgeRatio || 0) - (a.surgeRatio || 0));
 
   const total = list.length;
   const shown = q ? list : list.slice(0, LIST_LIMIT);
@@ -130,7 +138,8 @@ function renderList() {
   ul.innerHTML = '';
   if (shown.length === 0) { ul.innerHTML = '<li class="empty">조건에 맞는 종목이 없습니다.</li>'; $('#listMore').textContent = ''; $('#screenerMeta').textContent = ''; return; }
   shown.forEach((r, i) => ul.appendChild(rowEl(r, i + 1)));
-  $('#screenerMeta').innerHTML = `조건 충족 <b>${fmtInt(total)}</b>종목 · 세력 유입 점수 높은 순`;
+  const sortLbl = bothStrong ? '단기+장기 합계 높은 순' : '세력 유입 점수 높은 순';
+  $('#screenerMeta').innerHTML = `조건 충족 <b>${fmtInt(total)}</b>종목 · ${sortLbl}`;
   $('#listMore').textContent = (!q && total > shown.length) ? `상위 ${shown.length}개만 표시 중입니다. 검색으로 특정 종목을 찾아보세요.` : '';
 }
 
@@ -139,6 +148,9 @@ function rowEl(r, rank) {
   li.tabIndex = 0;
   const badges = (r.badges || []).slice(0, 4).map(b => `<span class="badge b-${b}">${badgeLabel(b)}</span>`).join('');
   const illiq = r.illiquid ? ' <span class="illiq-tag">· 저유동성</span>' : '';
+  const longTag = r.longAvail
+    ? `<div class="longscore" title="장기 매집 점수 (Chaikin 3,220 + OBV 220일)">장기 <b>${r.longScore}</b></div>`
+    : `<div class="longscore na" title="장기 점수 산정에 필요한 데이터 부족">장기 —</div>`;
   li.innerHTML = `
     <div class="rank">${rank}</div>
     <div class="nm">${escapeHtml(r.name)}
@@ -146,7 +158,8 @@ function rowEl(r, rank) {
       <div class="badges">${badges}</div>
     </div>
     <div class="right">
-      <div class="score">${r._score}</div><div class="scorelbl">SCORE</div>
+      <div class="score">${r._score}</div><div class="scorelbl">단기 SCORE</div>
+      ${longTag}
       <div class="price">${fmtInt(r.close)}원 ${changeSpan(r.change)}</div>
     </div>
     <div class="scorebar" style="grid-column:1/-1"><i style="width:${Math.max(0, Math.min(100, r._score))}%"></i></div>`;
@@ -186,7 +199,10 @@ function renderDetail(d) {
   body.innerHTML = '';
 
   const head = el('div');
-  head.innerHTML = `<div class="reading"><b>세력 유입 점수 ${score}</b> · 현재가 ${fmtInt(d.close)}원 ${changeSpan(d.change)} · 기준일 ${d.dates[d.dates.length - 1]}<br>${makeReading(d)}</div>`;
+  const longLine = d.longAvail
+    ? `<br><span class="muted">장기 매집 점수 <b style="color:var(--accent)">${d.longScore}</b> (Chaikin 3,220 + OBV 220일 평균)</span>`
+    : `<br><span class="muted">장기 매집 점수 — 데이터 부족(상장 후 ${d.dates.length}거래일)</span>`;
+  head.innerHTML = `<div class="reading"><b>단기 세력 유입 점수 ${score}</b> · 현재가 ${fmtInt(d.close)}원 ${changeSpan(d.change)} · 기준일 ${d.dates[d.dates.length - 1]}${longLine}<br>${makeReading(d)}</div>`;
   const bd = el('div', 'detail-badges', (d.badges || []).map(b => `<span class="badge b-${b}">${badgeLabel(b)}</span>`).join(''));
   head.appendChild(bd);
   body.appendChild(head);
@@ -228,8 +244,8 @@ function renderDetail(d) {
   for (const lvl of [20, 80]) kS.createPriceLine({ price: lvl, color: '#2c3450', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true });
   cSt.timeScale().fitContent();
 
-  // 점수 분해
-  body.appendChild(el('h4', null, '이 점수는 이렇게 나왔습니다 (현재 가중치 기준)'));
+  // 단기 점수 분해
+  body.appendChild(el('h4', null, '단기 점수는 이렇게 나왔습니다 (현재 가중치 기준)'));
   const ul = el('ul', 'sublist');
   for (const k of SUB_KEYS) {
     const v = d.sub[k] || 0;
@@ -238,6 +254,20 @@ function renderDetail(d) {
     ul.appendChild(li);
   }
   body.appendChild(ul);
+
+  // 장기 점수 분해
+  if (d.longAvail && d.longSub) {
+    body.appendChild(el('h4', null, '장기 매집 점수 분해 (1년 단위 추세)'));
+    const ulL = el('ul', 'sublist');
+    for (const k of LONG_SUB_KEYS) {
+      const v = d.longSub[k] || 0;
+      const li = el('li');
+      li.innerHTML = `<span class="lbl">${LONG_SUB_LABELS[k]}<br><span class="muted" style="font-size:.72rem">가중치 50</span></span><span class="scorebar"><i style="width:${v}%;background:linear-gradient(90deg,var(--accent),var(--good))"></i></span><span class="val">${v}</span>`;
+      ulL.appendChild(li);
+    }
+    body.appendChild(ulL);
+  }
+
   body.appendChild(el('p', 'disclaimer', '교육용 화면입니다. 특정 종목 매수·매도 권유가 아니며, 과거 거래량 패턴이 미래를 보장하지 않습니다.'));
   body.scrollTop = 0;
 }

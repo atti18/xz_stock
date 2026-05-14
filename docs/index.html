@@ -240,9 +240,20 @@
 <section id="rules">
   <h2>세력 유입 점수는 이렇게 계산한다</h2>
   <p>각 종목을 위 다섯 신호로 <b>0~100점</b>씩 매긴다(대부분 전 종목 중 <b>백분위 순위</b> — "이 신호에서 상위 몇 %인가").
-  그걸 아래 가중치로 평균낸 게 <b>세력 유입 점수</b>다. 블랙박스가 아니라 규칙은 다 공개.</p>
+  그걸 아래 가중치로 평균낸 게 <b>단기 "세력 유입 점수"</b>다. 블랙박스가 아니라 규칙은 다 공개.</p>
   <table id="weightTable"><tbody><tr><td class="muted">불러오는 중…</td></tr></tbody></table>
   <p class="muted" id="paramNote"></p>
+
+  <div class="callout" style="border-left-color:var(--good)">
+    <b>＋ 장기 매집 점수</b> — 단기 점수와 별도로, <b>1년 단위 누적 매집 추세</b>를 보는 점수도 같이 표시한다.
+    <ul style="margin:.3rem 0 .1rem; padding-left:1.1rem; font-size:.92rem">
+      <li><b>장기 차이킨 (3, 220)</b> — 단기 ADL 평균(3일)과 장기 ADL 평균(220일 ≈ 1년)의 차. 0 위로 막 올라오면 "1년 분산 → 매집 전환".</li>
+      <li><b>장기 OBV 기울기 (220일)</b> — 최근 1년간 OBV가 우상향인가. 가격 상관없이 누적 매수세가 쌓였는지.</li>
+      <li>둘을 <b>50:50으로 평균</b>해 0~100 점수. 상장 후 280거래일 미만 종목은 산정 불가(상세 화면에 "데이터 부족" 표시).</li>
+    </ul>
+    <p class="muted" style="margin:.4rem 0 0">짧은 신호가 자주 가짜로 뜨는 종목을 거르고 싶을 때 — 스크리너 위의 <b>"단기·장기 둘 다 강한 종목만"</b> 체크박스를 켜면 둘 다 60점 이상인 종목으로 좁혀집니다.</p>
+  </div>
+
   <p class="disclaimer">점수가 높다는 건 "<b>오늘 거래량 신호가 상대적으로 강하다</b>"는 뜻이지, 수익을 보장한다는 뜻이 절대 아닙니다.</p>
 </section>
 
@@ -256,6 +267,7 @@
       <input type="range" id="fMinScore" min="0" max="100" step="5" value="0">
     </label>
     <label class="chk"><input type="checkbox" id="fHideIlliq" checked> 저유동성 종목 숨기기</label>
+    <label class="chk"><input type="checkbox" id="fBothStrong"> 단기·장기 둘 다 강한 종목만(장기 60+)</label>
     <label class="search">검색 <input type="search" id="fSearch" placeholder="종목명 또는 코드"></label>
   </div>
 
