@@ -160,21 +160,17 @@ body.present-mode .speaker-note {
 }
 body.present-mode .speaker-note::before { content: "🎤 강사용 노트 — "; color: var(--good); font-weight: 700; font-size: .82rem; }
 
-/* 발표 모드에서 가리는 것: 긴 본문 단락, 주의/HTS 박스, 면책, 예시 캡션 */
+/* 발표 모드에서 가리는 것: 긴 본문 단락, 주의/HTS 박스, 면책, 예시 캡션
+   (스피커 노트·리드 한 줄·callout·예시 SVG·스크리너는 그대로 유지) */
 body.present-mode .card p:not(.lead):not(.speaker-note),
 body.present-mode .card .note,
 body.present-mode .card .hts,
-body.present-mode .card .mockcap,
-body.present-mode .card .hts + .mockcap,
-body.present-mode #intro p:not(.lead),
+body.present-mode .mockcap,
+body.present-mode #intro p:not(.speaker-note),
 body.present-mode #learn > p.muted,
-body.present-mode #learn > p.muted:last-of-type,
-body.present-mode #rules > p:not(.disclaimer):first-of-type,
-body.present-mode #rules .disclaimer,
-body.present-mode #rules #paramNote,
+body.present-mode #rules > p:not(.speaker-note),
 body.present-mode footer .disclaimer,
-body.present-mode .callout .muted,
-body.present-mode #intro .disclaimer { display: none; }
+body.present-mode .callout .muted { display: none; }
 
 /* 인트로의 callout 만 살려두면 강의 흐름 잡기 좋음. 카드 lead 는 큰 글씨로. */
 body.present-mode .card { padding: .65rem .8rem; }
