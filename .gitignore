@@ -15,3 +15,6 @@ Thumbs.db
 
 # refresh.ps1 실행 로그
 last_refresh.log
+
+# Claude Code 로컬 상태
+.claude/
