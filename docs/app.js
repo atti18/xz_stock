@@ -39,8 +39,44 @@ function scoreFor(row, w) {
   return den ? Math.round(num / den) : 0;
 }
 
+// ───────────────────────── 발표 모드 ─────────────────────────
+// URL 에 ?present 가 붙어 있으면 강사 전용 발표 모드를 켠다 (청중 페이지는 영향 없음).
+function setupPresentMode() {
+  const isPresent = new URLSearchParams(location.search).has('present');
+  if (!isPresent) return;
+  document.body.classList.add('present-mode');
+  // 상단 발표 네비 바
+  const bar = el('div', 'presbar');
+  bar.innerHTML = `
+    <button data-pn="prev" type="button">◀ 이전</button>
+    <div class="prestitle" id="presTitle">발표 모드</div>
+    <button data-pn="next" type="button">다음 ▶</button>`;
+  document.body.insertBefore(bar, document.body.firstChild);
+  const order = ['intro', 'learn', 'rules', 'screener'];
+  const titles = { intro: '① 인트로 — 왜 거래량인가', learn: '② 지표 배우기', rules: '③ 점수 규칙', screener: '④ 스크리너 데모' };
+  const cur = () => {
+    let active = order[0];
+    for (const id of order) {
+      const el2 = document.getElementById(id);
+      if (el2 && el2.getBoundingClientRect().top <= 120) active = id;
+    }
+    return active;
+  };
+  const update = () => { $('#presTitle').textContent = titles[cur()]; };
+  const go = (dir) => {
+    const i = order.indexOf(cur());
+    const j = Math.max(0, Math.min(order.length - 1, i + dir));
+    document.getElementById(order[j]).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  bar.querySelector('[data-pn=prev]').addEventListener('click', () => go(-1));
+  bar.querySelector('[data-pn=next]').addEventListener('click', () => go(+1));
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+}
+
 // ───────────────────────── 초기화 ─────────────────────────
 async function init() {
+  setupPresentMode();
   try {
     const [meta, rows] = await Promise.all([
       fetch('data/meta.json').then(r => r.json()),

@@ -149,3 +149,52 @@ output { color: var(--text); font-variant-numeric: tabular-nums; }
 .legend i { display: inline-block; width: .7rem; height: .7rem; border-radius: 2px; margin-right: .25rem; vertical-align: middle; }
 
 footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+
+/* ───────── 발표 모드 (?present 로만 접속) ─────────
+   강사 본인 화면만 가벼워지고, 청중 페이지(?present 없음)는 영향 없음. */
+.speaker-note { display: none; }
+body.present-mode .speaker-note {
+  display: block; margin: .5rem 0 .2rem; font-size: .92rem; color: var(--text);
+  background: rgba(56,193,114,.1); border: 1px solid rgba(56,193,114,.32); border-left: 3px solid var(--good);
+  border-radius: 8px; padding: .55rem .7rem;
+}
+body.present-mode .speaker-note::before { content: "🎤 강사용 노트 — "; color: var(--good); font-weight: 700; font-size: .82rem; }
+
+/* 발표 모드에서 가리는 것: 긴 본문 단락, 주의/HTS 박스, 면책, 예시 캡션 */
+body.present-mode .card p:not(.lead):not(.speaker-note),
+body.present-mode .card .note,
+body.present-mode .card .hts,
+body.present-mode .card .mockcap,
+body.present-mode .card .hts + .mockcap,
+body.present-mode #intro p:not(.lead),
+body.present-mode #learn > p.muted,
+body.present-mode #learn > p.muted:last-of-type,
+body.present-mode #rules > p:not(.disclaimer):first-of-type,
+body.present-mode #rules .disclaimer,
+body.present-mode #rules #paramNote,
+body.present-mode footer .disclaimer,
+body.present-mode .callout .muted,
+body.present-mode #intro .disclaimer { display: none; }
+
+/* 인트로의 callout 만 살려두면 강의 흐름 잡기 좋음. 카드 lead 는 큰 글씨로. */
+body.present-mode .card { padding: .65rem .8rem; }
+body.present-mode .card .lead { font-size: 1.05rem; color: var(--text); margin: .15rem 0 .35rem; }
+body.present-mode .card h3 { color: var(--accent); font-size: 1.1rem; }
+body.present-mode section { margin: 1.1rem 0; }
+
+/* 발표 네비 바 — sticky 상단 (topbar 위에 겹쳐 보이지 않게 topbar 보다 더 위 z-index) */
+body.present-mode .presbar {
+  position: sticky; top: 0; z-index: 30;
+  display: grid; grid-template-columns: auto 1fr auto; gap: .5rem; align-items: center;
+  padding: .55rem .9rem calc(.55rem + env(safe-area-inset-top,0)) .9rem;
+  background: linear-gradient(180deg, rgba(56,193,114,.16), rgba(15,19,32,.95));
+  border-bottom: 1px solid rgba(56,193,114,.3);
+}
+body.present-mode .presbar button {
+  background: var(--panel); color: var(--text); border: 1px solid rgba(56,193,114,.5);
+  border-radius: 8px; padding: .35rem .7rem; font-size: .88rem; cursor: pointer;
+}
+body.present-mode .presbar button:active { background: rgba(56,193,114,.2); }
+body.present-mode .prestitle { text-align: center; font-weight: 700; font-size: .92rem; color: var(--good); }
+body.present-mode .topbar { top: 2.9rem; }      /* topbar 도 sticky 라 presbar 아래에 붙음 */
+body.present-mode .secnav { top: 6rem; }
